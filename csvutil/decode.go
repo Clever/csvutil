@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strconv"
 )
 
 type Decoder struct {
@@ -34,10 +35,9 @@ func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 
 	numColumns := len(headers)
 	sortedMappings := make([]csvField, numColumns)
-	extraHeaders := []string{}
+	extraHeaders := []string{} // TODO: do anything with this?
 	headersSeen := map[string]bool{}
 	// Sort headers in line w/ CSV columns
-	// Yes, this is O(n^2), but we do it a single time
 	for i, h := range headers {
 		// ensure unique CSV headers
 		if headersSeen[h] {
@@ -66,7 +66,7 @@ func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 
 	return Decoder{
 		r:          csvR,
-		mappings:   mappings,
+		mappings:   sortedMappings,
 		numColumns: numColumns,
 	}, nil
 }
@@ -77,6 +77,8 @@ func (d Decoder) Read(dest interface{}) error {
 		return fmt.Errorf("Destination struct passed in cannot be nil")
 	} else if destStruct.Type().Kind() != reflect.Ptr {
 		return fmt.Errorf("Destination struct passed in must be pointer")
+	} else if destStruct.Elem().Kind() == reflect.Interface {
+		return fmt.Errorf("Destination struct cannot be an interface")
 	}
 
 	row, err := d.r.Read()
@@ -88,18 +90,33 @@ func (d Decoder) Read(dest interface{}) error {
 		return fmt.Errorf("expected %d columns, found %d", d.numColumns, len(row))
 	}
 
-	for i, m := range d.mappings {
+	// for i, m := range d.mappings {
+	for i, strValue := range row {
+		m := d.mappings[i]
 		// skip column if we have no mapping
 		if m.fieldName == "" {
 			continue
+		} else if m.required && strValue == "" {
+			return fmt.Errorf("column %s required but no value found", m.fieldName)
 		}
-		strValue := row[i]
 
 		switch m.fieldType {
 		case reflect.String:
-			destStruct.Field(m.fieldIndex).SetString(strValue)
+			destStruct.Elem().Field(m.fieldIndex).SetString(strValue)
 		case reflect.Int:
+			intVal, err := strconv.Atoi(strValue)
+			if err != nil {
+				return fmt.Errorf("failed to coerce value '%s' into integer for field %s",
+					strValue, m.fieldName)
+			}
+			destStruct.Elem().Field(m.fieldIndex).SetInt(int64(intVal))
 		case reflect.Bool:
+			boolVal, err := strconv.ParseBool(strValue)
+			if err != nil {
+				return fmt.Errorf("failed to coerce value '%s' into boolean for field %s",
+					strValue, m.fieldName)
+			}
+			destStruct.Elem().Field(m.fieldIndex).SetBool(boolVal)
 		case reflect.Slice:
 		default:
 		}
