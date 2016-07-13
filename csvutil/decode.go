@@ -10,12 +10,15 @@ import (
 	"strings"
 )
 
+// Decoder manages reading data from a CSV into tagged structs.
 type Decoder struct {
 	r          *csv.Reader
 	mappings   []csvField
 	numColumns int
 }
 
+// NewDecoder initializes itself with the headers of the CSV file to build mappings
+// to read data into structs.
 func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 	csvR := csv.NewReader(r)
 	mappings, err := structureFromStruct(dest)
@@ -73,6 +76,8 @@ func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 	}, nil
 }
 
+// Read decodes data from a CSV row into a struct. The struct must be passed as a pointer
+// into Read.
 func (d Decoder) Read(dest interface{}) error {
 	destStruct := reflect.ValueOf(dest)
 	if dest == nil {

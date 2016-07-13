@@ -10,11 +10,13 @@ import (
 	"strings"
 )
 
+// Encoder manages writing a tagged struct into a CSV
 type Encoder struct {
 	w        *csv.Writer
 	mappings []csvField
 }
 
+// NewEncoder prepares mappings from struct to CSV based on struct tags.
 func NewEncoder(w io.Writer, dest interface{}) (Encoder, error) {
 	csvW := csv.NewWriter(w)
 	mappings, err := structureFromStruct(dest)
@@ -45,6 +47,7 @@ func NewEncoder(w io.Writer, dest interface{}) (Encoder, error) {
 	}, nil
 }
 
+// Write encodes the values of a struct into a CSV row and writes to the underlying io.writer.
 func (e Encoder) Write(src interface{}) error {
 	srcStruct := reflect.ValueOf(src)
 	if src == nil {

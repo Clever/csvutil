@@ -68,7 +68,7 @@ func structureFromStruct(dest interface{}) ([]csvField, error) {
 		fieldType := fieldInfo.Type
 		switch fieldType.Kind() {
 		case reflect.Invalid:
-			return nil, fmt.Errorf("got invalid type: %s", fieldInfo)
+			return nil, fmt.Errorf("got invalid type: %#v", fieldInfo)
 		case reflect.String:
 			field.fieldType = reflect.String
 		case reflect.Int:
