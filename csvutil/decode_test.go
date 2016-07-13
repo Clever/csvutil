@@ -87,6 +87,15 @@ func TestNewDecoder(t *testing.T) {
 			csvFile: "string,test,string\n",
 			err:     fmt.Errorf("saw header column 'string' twice, CSV headers must be unique"),
 		},
+		{
+			msg: "error when csv field has no UnmarshalText implementation",
+			s: struct {
+				StrField A `csv:"custom"`
+			}{},
+			csvFile: "string\n",
+			err: fmt.Errorf("unsuported field type found that does not implement the " +
+				"encoding.TextUnmarshaler interface: custom"),
+		},
 	}
 
 	for _, s := range specs {
@@ -99,6 +108,12 @@ func TestNewDecoder(t *testing.T) {
 			assert.Equal(t, s.fieldOrder, fields, s.msg)
 		}
 	}
+}
+
+type A struct{}
+
+func (a *A) MarshalText() ([]byte, error) {
+	return nil, nil
 }
 
 type M string

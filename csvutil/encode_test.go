@@ -35,6 +35,23 @@ func TestNewEncoderMissingField(t *testing.T) {
 	assert.Equal(t, "string,integer\n", buf.String())
 }
 
+type B struct{}
+
+func (b *B) UnmarshalText(buf []byte) error {
+	return nil
+}
+
+func TestNewEncoderMissingMarshalerInterface(t *testing.T) {
+	type ignoredFieldStruct struct {
+		CustomField B `csv:"custom"`
+	}
+	var buf bytes.Buffer
+
+	_, err := NewEncoder(&buf, ignoredFieldStruct{})
+	assert.Equal(t, errors.New("unsuported field type found that does not implement"+
+		" the encoding.TextMarshaler interface: custom"), err)
+}
+
 func TestEncodeValid(t *testing.T) {
 	type valid struct {
 		StrField string `csv:"string"`

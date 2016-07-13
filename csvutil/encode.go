@@ -28,7 +28,8 @@ func NewEncoder(w io.Writer, dest interface{}) (Encoder, error) {
 	// ensure that all "unknown" types have their own text marshaler
 	for _, m := range mappings {
 		if m.fieldType == reflect.Invalid && !m.customMarshaler {
-			// TODO: error out?
+			return Encoder{}, fmt.Errorf("unsuported field type found that does not "+
+				"implement the encoding.TextMarshaler interface: %s", m.fieldName)
 		}
 	}
 
