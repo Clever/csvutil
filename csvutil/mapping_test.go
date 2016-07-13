@@ -92,17 +92,25 @@ func TestStructureFromStruct(t *testing.T) {
 				csvField{
 					fieldName:  "f1",
 					fieldIndex: 0,
-					fieldType:  reflect.Array,
+					fieldType:  reflect.Slice,
 					sliceType:  reflect.String,
 				},
 			},
 		},
 		{
-			msg: "fail struct w/ int slice",
+			msg: "struct w/ int slice",
 			s: struct {
 				Field1 []int `csv:"f1"`
 			}{},
-			err: fmt.Errorf("slice of non string type is not supported"),
+			err: nil,
+			mapping: []csvField{
+				csvField{
+					fieldName:  "f1",
+					fieldIndex: 0,
+					fieldType:  reflect.Slice,
+					sliceType:  reflect.Int,
+				},
+			},
 		},
 		{
 			msg: "struct w/ no fields",

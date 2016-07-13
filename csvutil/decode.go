@@ -6,6 +6,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type Decoder struct {
@@ -118,7 +119,26 @@ func (d Decoder) Read(dest interface{}) error {
 			}
 			destStruct.Elem().Field(m.fieldIndex).SetBool(boolVal)
 		case reflect.Slice:
+			arrayStrValues := strings.Split(strValue, ",")
+			switch m.sliceType {
+			case reflect.String:
+				destStruct.Elem().Field(m.fieldIndex).Set(reflect.ValueOf(arrayStrValues))
+			case reflect.Int:
+				arrayIntValues := make([]int, len(arrayStrValues))
+				for i, s := range arrayStrValues {
+					intVal, err := strconv.Atoi(s)
+					if err != nil {
+						return fmt.Errorf("failed to coerce value '%s' (indexed %d) into integer for field %s: %s",
+							s, i, m.fieldName, err)
+					}
+					arrayIntValues[i] = int(intVal)
+				}
+				destStruct.Elem().Field(m.fieldIndex).Set(reflect.ValueOf(arrayIntValues))
+			default:
+				panic("slice fields can only be string.")
+			}
 		default:
+			panic(fmt.Sprintf("type not found: %s", m.fieldType))
 		}
 	}
 

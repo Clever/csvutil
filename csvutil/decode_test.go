@@ -1,6 +1,7 @@
 package csvutil
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -93,21 +94,21 @@ func TestNewDecoder(t *testing.T) {
 
 func TestDecoderRead(t *testing.T) {
 	type S struct {
-		StrField  string `csv:"string"`
-		IntField  int    `csv:"integer"`
-		BoolField bool   `csv:"boolean"`
+		StrField    string   `csv:"string"`
+		IntField    int      `csv:"integer"`
+		BoolField   bool     `csv:"boolean"`
+		StringArray []string `csv:"array"`
+		IntArray    []int    `csv:"intarray"`
 	}
 
 	specs := []struct {
 		msg     string
-		s       S
 		res     S
 		csvFile string
 		err     error
 	}{
 		{
 			msg: "string column",
-			s:   S{},
 			res: S{
 				StrField: "test",
 			},
@@ -115,7 +116,6 @@ func TestDecoderRead(t *testing.T) {
 		},
 		{
 			msg: "int column",
-			s:   S{},
 			res: S{
 				IntField: 1,
 			},
@@ -123,7 +123,6 @@ func TestDecoderRead(t *testing.T) {
 		},
 		{
 			msg: "int & string columns",
-			s:   S{},
 			res: S{
 				StrField: "test",
 				IntField: 1,
@@ -132,7 +131,6 @@ func TestDecoderRead(t *testing.T) {
 		},
 		{
 			msg: "int & string columns flipped",
-			s:   S{},
 			res: S{
 				StrField: "test",
 				IntField: 1,
@@ -141,16 +139,34 @@ func TestDecoderRead(t *testing.T) {
 		},
 		{
 			msg: "bool column",
-			s:   S{},
 			res: S{
 				BoolField: true,
 			},
 			csvFile: "boolean\ntrue\nt",
 		},
+		{
+			msg: "string array",
+			res: S{
+				StringArray: []string{"a", "b"},
+			},
+			csvFile: "array\n\"a,b\"\n",
+		},
+		{
+			msg: "int array",
+			res: S{
+				IntArray: []int{1, 2},
+			},
+			csvFile: "intarray\n\"1,2\"\n",
+		},
+		{
+			msg:     "invalid int array",
+			csvFile: "intarray\n\"1,a\"\n",
+			err:     errors.New("failed to coerce value 'a' (indexed 1) into integer for field intarray: strconv.ParseInt: parsing \"a\": invalid syntax"),
+		},
 	}
 
 	for _, s := range specs {
-		d, err := NewDecoder(strings.NewReader(s.csvFile), s.s)
+		d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
 		assert.Nil(t, err, s.msg)
 		var val S
 		err = d.Read(&val)

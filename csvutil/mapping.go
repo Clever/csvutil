@@ -76,11 +76,15 @@ func structureFromStruct(dest interface{}) ([]csvField, error) {
 		case reflect.Bool:
 			field.fieldType = reflect.Bool
 		case reflect.Slice:
-			if fieldInfo.Type.Elem().Kind() != reflect.String {
-				return nil, fmt.Errorf("slice of non string type is not supported")
+			field.fieldType = reflect.Slice
+			switch fieldInfo.Type.Elem().Kind() {
+			case reflect.String:
+				field.sliceType = reflect.String
+			case reflect.Int:
+				field.sliceType = reflect.Int
+			default:
+				return nil, fmt.Errorf("only string & int slices allowed")
 			}
-			field.fieldType = reflect.Array
-			field.sliceType = reflect.String
 		default:
 			// NOTE: whether or not a marshaler type is implemented for all unknown types will
 			// be audited by the NewEncoder/NewDecoder functions.
