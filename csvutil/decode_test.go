@@ -5,8 +5,17 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	defaultTimeStr = "2006-01-02T15:04:05Z"
+)
+
+var (
+	defaultTime = time.Date(2006, time.January, 2, 15, 4, 5, 0, time.UTC)
 )
 
 func TestNewDecoder(t *testing.T) {
@@ -92,13 +101,21 @@ func TestNewDecoder(t *testing.T) {
 	}
 }
 
+type M string
+
+func (m *M) UnmarshalText(b []byte) error {
+	*m = M("foo" + string(b))
+	return nil
+}
+
 func TestDecoderRead(t *testing.T) {
 	type S struct {
-		StrField    string   `csv:"string"`
-		IntField    int      `csv:"integer"`
-		BoolField   bool     `csv:"boolean"`
-		StringArray []string `csv:"array"`
-		IntArray    []int    `csv:"intarray"`
+		StrField    string     `csv:"string"`
+		IntField    int        `csv:"integer"`
+		BoolField   bool       `csv:"boolean"`
+		StringArray []string   `csv:"array"`
+		IntArray    []int      `csv:"intarray"`
+		Time        *time.Time `csv:"time"`
 	}
 
 	specs := []struct {
@@ -162,6 +179,13 @@ func TestDecoderRead(t *testing.T) {
 			msg:     "invalid int array",
 			csvFile: "intarray\n\"1,a\"\n",
 			err:     errors.New("failed to coerce value 'a' (indexed 1) into integer for field intarray: strconv.ParseInt: parsing \"a\": invalid syntax"),
+		},
+		{
+			msg:     "time: custom unmarshaler type",
+			csvFile: fmt.Sprintf("time\n%s\n", defaultTimeStr),
+			res: S{
+				Time: &defaultTime,
+			},
 		},
 	}
 

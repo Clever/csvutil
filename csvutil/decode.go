@@ -1,6 +1,7 @@
 package csvutil
 
 import (
+	"encoding"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -22,7 +23,7 @@ func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 		return Decoder{}, err
 	}
 
-	// ensure that all "unknown" types have their own text marshaler
+	// ensure that all "unknown" types have their own text unmarshaler
 	for _, m := range mappings {
 		if m.fieldType == reflect.Invalid && !m.customUnmarshaler {
 			// TODO: error out?
@@ -99,6 +100,18 @@ func (d Decoder) Read(dest interface{}) error {
 			continue
 		} else if m.required && strValue == "" {
 			return fmt.Errorf("column %s required but no value found", m.fieldName)
+		}
+
+		if m.customUnmarshaler {
+			v := destStruct.Elem().Field(m.fieldIndex)
+			v.Set(reflect.New(v.Type().Elem()))
+
+			u := v.Interface().(encoding.TextUnmarshaler)
+			if err := u.UnmarshalText([]byte(strValue)); err != nil {
+				return fmt.Errorf("failed to coerce value '%s' using custom marshaler for field %s: %s",
+					strValue, m.fieldName, err)
+			}
+			continue
 		}
 
 		switch m.fieldType {
