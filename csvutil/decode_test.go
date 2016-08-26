@@ -3,6 +3,7 @@ package csvutil
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -242,4 +243,27 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 		assert.Equal(t, s.err, err, s.msg)
 		assert.Equal(t, val, S{}, s.msg)
 	}
+}
+
+func TestDecodeMultipleRows(t *testing.T) {
+	type S struct {
+		StrField string `csv:"string_column"`
+	}
+
+	expectedValues := []string{"a", "b", "c"}
+	input := (`string_column
+a
+b
+c`)
+
+	d, err := NewDecoder(strings.NewReader(input), S{})
+	assert.NoError(t, err)
+	for i, val := range expectedValues {
+		var s S
+		assert.NoError(t, d.Read(&s), "reading %d row", i)
+		assert.Equal(t, val, s.StrField)
+	}
+
+	var s S
+	assert.Equal(t, io.EOF, d.Read(&s), "should return EOF at end of buffer")
 }

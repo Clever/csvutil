@@ -79,6 +79,7 @@ func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 
 // Read decodes data from a CSV row into a struct. The struct must be passed as a pointer
 // into Read.
+// When there is no data left in the reader, an `io.EOF` is returned.
 func (d Decoder) Read(dest interface{}) error {
 	destStruct := reflect.ValueOf(dest)
 	if dest == nil {
@@ -90,7 +91,9 @@ func (d Decoder) Read(dest interface{}) error {
 	}
 
 	row, err := d.r.Read()
-	if err != nil {
+	if err == io.EOF {
+		return io.EOF
+	} else if err != nil {
 		return fmt.Errorf("failed to read CSV row: %s", err)
 	}
 
