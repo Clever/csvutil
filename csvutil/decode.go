@@ -98,7 +98,6 @@ func (d Decoder) Read(dest interface{}) error {
 		return fmt.Errorf("expected %d columns, found %d", d.numColumns, len(row))
 	}
 
-	// for i, m := range d.mappings {
 	for i, strValue := range row {
 		m := d.mappings[i]
 		// skip column if we have no mapping

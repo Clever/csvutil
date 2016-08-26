@@ -25,6 +25,9 @@ type csvField struct {
 	customUnmarshaler bool
 }
 
+// structureFromStruct builds an internal mapping of how to translate a struct to and from
+// a CSV line. This vets that the struct actually has fields tagged for CSV marshaling
+// and ensures that we are able to marshal _or_ unmarshal each field from text.
 func structureFromStruct(dest interface{}) ([]csvField, error) {
 	if dest == nil {
 		return nil, fmt.Errorf("provided struct cannot be nil")
