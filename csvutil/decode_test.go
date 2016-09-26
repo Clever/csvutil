@@ -124,6 +124,19 @@ func (m *M) UnmarshalText(b []byte) error {
 	return nil
 }
 
+type CustomTime struct {
+	time.Time
+}
+
+func (t *CustomTime) UnmarshalText(b []byte) error {
+	parsedTime, err := time.Parse("01/02/2006", string(b))
+	if err != nil {
+		return err
+	}
+	*t = CustomTime{parsedTime}
+	return nil
+}
+
 func TestDecoderRead(t *testing.T) {
 	type S struct {
 		StrField    string     `csv:"string"`
@@ -243,6 +256,22 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 		assert.Equal(t, s.err, err, s.msg)
 		assert.Equal(t, val, S{}, s.msg)
 	}
+}
+
+func TextDecodeWithPointerUnmarshal(t *testing.T) {
+	type S struct {
+		m CustomTime `csv:"m"`
+	}
+	const timeString = "10/05/2015"
+	var timeValue = time.Date(2015, 1, 10, 0, 0, 0, 0, time.UTC)
+
+	input := fmt.Sprintf("m\n%s", timeString)
+	d, err := NewDecoder(strings.NewReader(input), S{})
+	assert.NoError(t, err)
+	var s S
+	err = d.Read(&s)
+	assert.NoError(t, err)
+	assert.Equal(t, s, timeValue)
 }
 
 func TestDecodeMultipleRows(t *testing.T) {

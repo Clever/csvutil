@@ -25,6 +25,14 @@ type csvField struct {
 	customUnmarshaler bool
 }
 
+// doesImplement returns true if type `t` implements `ifc` interface
+func doesImplement(t reflect.Type, ifc reflect.Type) bool {
+	if t.Kind() != reflect.Ptr {
+		t = reflect.PtrTo(t)
+	}
+	return t.Implements(ifc)
+}
+
 // structureFromStruct builds an internal mapping of how to translate a struct to and from
 // a CSV line. This vets that the struct actually has fields tagged for CSV marshaling
 // and ensures that we are able to marshal _or_ unmarshal each field from text.
@@ -61,10 +69,10 @@ func structureFromStruct(dest interface{}) ([]csvField, error) {
 			fieldIndex: i,
 		}
 
-		if fieldInfo.Type.Implements(textMarshalerType) {
+		if doesImplement(fieldInfo.Type, textMarshalerType) {
 			field.customMarshaler = true
 		}
-		if fieldInfo.Type.Implements(textUnmarshalerType) {
+		if doesImplement(fieldInfo.Type, textUnmarshalerType) {
 			field.customUnmarshaler = true
 		}
 
