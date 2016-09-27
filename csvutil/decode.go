@@ -112,8 +112,13 @@ func (d Decoder) Read(dest interface{}) error {
 
 		if m.customUnmarshaler {
 			v := destStruct.Elem().Field(m.fieldIndex)
-			v.Set(reflect.New(v.Type().Elem()))
-
+			if v.Type().Kind() != reflect.Ptr {
+				// if value is not a pointer we need an addressable value for Unmarshal
+				v = v.Addr()
+			} else if v.IsNil() {
+				// If the value is a pointer, but is nil, instantiate the underlying type
+				v.Set(reflect.New(v.Type().Elem()))
+			}
 			u := v.Interface().(encoding.TextUnmarshaler)
 			if err := u.UnmarshalText([]byte(strValue)); err != nil {
 				return fmt.Errorf("failed to coerce value '%s' using custom marshaler for field %s: %s",

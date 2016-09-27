@@ -258,12 +258,12 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 	}
 }
 
-func TextDecodeWithPointerUnmarshal(t *testing.T) {
+func TestDecodeWithPointerUnmarshal(t *testing.T) {
 	type S struct {
-		m CustomTime `csv:"m"`
+		T CustomTime `csv:"m"`
 	}
 	const timeString = "10/05/2015"
-	var timeValue = time.Date(2015, 1, 10, 0, 0, 0, 0, time.UTC)
+	var timeValue = time.Date(2015, 10, 5, 0, 0, 0, 0, time.UTC)
 
 	input := fmt.Sprintf("m\n%s", timeString)
 	d, err := NewDecoder(strings.NewReader(input), S{})
@@ -271,7 +271,7 @@ func TextDecodeWithPointerUnmarshal(t *testing.T) {
 	var s S
 	err = d.Read(&s)
 	assert.NoError(t, err)
-	assert.Equal(t, s, timeValue)
+	assert.Equal(t, CustomTime{timeValue}, s.T)
 }
 
 func TestDecodeMultipleRows(t *testing.T) {
