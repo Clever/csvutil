@@ -106,8 +106,19 @@ func (d Decoder) Read(dest interface{}) error {
 		// skip column if we have no mapping
 		if m.fieldName == "" {
 			continue
-		} else if m.required && strValue == "" {
-			return fmt.Errorf("column %s required but no value found", m.fieldName)
+		}
+		if strValue == "" {
+			if m.required {
+				return fmt.Errorf("column %s required but no value found", m.fieldName)
+			}
+			// If the field is optional and the value is the empty string
+			// - if the field is a pointer, let it remain nil
+			// - if the field isn't a pointer, initialize it with the default value for that type
+			v := destStruct.Elem().Field(m.fieldIndex)
+			if v.Type().Kind() != reflect.Ptr {
+				v.Set(reflect.New(v.Type().Elem()))
+			}
+			return nil
 		}
 
 		if m.customUnmarshaler {
