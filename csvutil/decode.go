@@ -21,6 +21,13 @@ type Decoder struct {
 // to read data into structs.
 func NewDecoder(r io.Reader, dest interface{}) (Decoder, error) {
 	csvR := csv.NewReader(r)
+	return NewDecoderFromCSVReader(csvR, dest)
+}
+
+// NewDecoderFromCSVReader intializes a decoder using the given csv.Reader.
+// This allows the caller to configure options on the csv.Reader (e.g. what
+// delimiter to use) instead of using the defaults.
+func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error) {
 	mappings, err := structureFromStruct(dest)
 	if err != nil {
 		return Decoder{}, err

@@ -1,6 +1,7 @@
 package csvutil
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
@@ -109,6 +110,23 @@ func TestNewDecoder(t *testing.T) {
 			assert.Equal(t, s.fieldOrder, fields, s.msg)
 		}
 	}
+}
+
+func TestNewDecoderFromCSVReader(t *testing.T) {
+	csvStr := "field1\tfield2\nvalue1\tvalue2"
+	type S struct {
+		Field1 string `csv:"field1"`
+		Field2 string `csv:"field2"`
+	}
+	r := csv.NewReader(strings.NewReader(csvStr))
+	r.Comma = '\t'
+	d, err := NewDecoderFromCSVReader(r, S{})
+	assert.Nil(t, err)
+	var s S
+	err = d.Read(&s)
+	assert.Nil(t, err)
+	assert.Equal(t, s.Field1, "value1")
+	assert.Equal(t, s.Field2, "value2")
 }
 
 type A struct{}

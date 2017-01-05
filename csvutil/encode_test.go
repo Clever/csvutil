@@ -2,6 +2,7 @@ package csvutil
 
 import (
 	"bytes"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"testing"
@@ -20,6 +21,20 @@ func TestNewEncoderValid(t *testing.T) {
 	_, err := NewEncoder(&buf, valid{})
 	assert.Nil(t, err)
 	assert.Equal(t, "string,integer\n", buf.String())
+}
+
+func TestNewEncoderFromCSVWriter(t *testing.T) {
+	type valid struct {
+		StrField string `csv:"string"`
+		IntField int    `csv:"integer"`
+	}
+	var buf bytes.Buffer
+
+	w := csv.NewWriter(&buf)
+	w.Comma = '\t'
+	_, err := NewEncoderFromCSVWriter(w, valid{})
+	assert.Nil(t, err)
+	assert.Equal(t, "string\tinteger\n", buf.String())
 }
 
 func TestNewEncoderMissingField(t *testing.T) {

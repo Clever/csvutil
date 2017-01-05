@@ -19,6 +19,13 @@ type Encoder struct {
 // NewEncoder prepares mappings from struct to CSV based on struct tags.
 func NewEncoder(w io.Writer, dest interface{}) (Encoder, error) {
 	csvW := csv.NewWriter(w)
+	return NewEncoderFromCSVWriter(csvW, dest)
+}
+
+// NewEncoderFromCSVWriter intializes an encoder using the given csv.Writer.
+// This allows the caller to configure options on the csv.Writer (e.g. what
+// delimiter to use) instead of using the defaults.
+func NewEncoderFromCSVWriter(csvW *csv.Writer, dest interface{}) (Encoder, error) {
 	mappings, err := structureFromStruct(dest)
 	if err != nil {
 		return Encoder{}, err
