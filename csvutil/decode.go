@@ -52,6 +52,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 	headersSeen := map[string]bool{}
 	// Sort headers in line w/ CSV columns
 	for i, h := range headers {
+		h = strings.ToLower(h)
 		// ensure unique CSV headers
 		if headersSeen[h] {
 			return Decoder{}, fmt.Errorf("saw header column '%s' twice, CSV headers must be unique", h)
@@ -60,7 +61,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 
 		// slot field info in array parallel to CSV column
 		for _, f := range mappings {
-			if h == f.fieldName {
+			if h == strings.ToLower(f.fieldName) {
 				sortedMappings[i] = f
 			}
 		}
@@ -72,7 +73,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 
 	// Ensure that all required columns are present
 	for _, f := range mappings {
-		if f.required && !headersSeen[f.fieldName] {
+		if f.required && !headersSeen[strings.ToLower(f.fieldName)] {
 			return Decoder{}, fmt.Errorf("column '%s' required but not found", f.fieldName)
 		}
 	}

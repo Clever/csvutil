@@ -46,6 +46,15 @@ func TestNewDecoder(t *testing.T) {
 			fieldOrder: []string{"string", "integer"},
 		},
 		{
+			msg: "support case insensetive",
+			s: struct {
+				StrField     string `csv:"String"`
+				IntegerField int    `csv:"integer,required"`
+			}{},
+			csvFile:    "strinG,integer\ntest,1\ntest,2",
+			fieldOrder: []string{"String", "integer"},
+		},
+		{
 			msg: "simple struct w/ two fields, csv missing one",
 			s: struct {
 				StrField     string `csv:"string"`
@@ -200,6 +209,14 @@ func TestDecoderRead(t *testing.T) {
 				IntField: 1,
 			},
 			csvFile: "string,integer\ntest,1\nhi,2",
+		},
+		{
+			msg: "int & string columns - case insensitive",
+			res: S{
+				StrField: "test",
+				IntField: 1,
+			},
+			csvFile: "integer,StRiNg\n1,test\n2,hi",
 		},
 		{
 			msg: "bool column",
