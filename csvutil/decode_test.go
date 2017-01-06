@@ -251,13 +251,6 @@ func TestDecoderRead(t *testing.T) {
 				Time: &defaultTime,
 			},
 		},
-		{
-			msg:     "time: optional pointer field gets nil for empty string",
-			csvFile: "time,string\n,x\n",
-			res: S{
-				Time: nil,
-			},
-		},
 	}
 
 	for _, s := range specs {
@@ -273,8 +266,7 @@ func TestDecoderRead(t *testing.T) {
 
 func TestDecoderReadRequiredMissing(t *testing.T) {
 	type S struct {
-		StrField string     `csv:"string,required"`
-		PtrField *time.Time `csv:"ptr,required"`
+		StrField string `csv:"string,required"`
 	}
 
 	specs := []struct {
@@ -286,14 +278,8 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 		{
 			msg:     "required string column missing value",
 			s:       S{},
-			csvFile: "string,extra,ptr\n,,test1\ntest2,,test3", // missing in first row!
+			csvFile: "string,extra\n,\ntest2,", // missing in first row!
 			err:     fmt.Errorf("column string required but no value found"),
-		},
-		{
-			msg:     "required ptr column missing value",
-			s:       S{},
-			csvFile: "ptr,string\n,test1\ntest2,test3", // missing in first row!
-			err:     fmt.Errorf("column ptr required but no value found"),
 		},
 	}
 
@@ -303,7 +289,7 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 		var val S
 		err = d.Read(&val)
 		assert.Equal(t, s.err, err, s.msg)
-		assert.Equal(t, s.s, val, s.msg)
+		assert.Equal(t, val, S{}, s.msg)
 	}
 }
 
