@@ -242,7 +242,7 @@ func TestDecoderRead(t *testing.T) {
 		{
 			msg:     "invalid int array",
 			csvFile: "intarray\n\"1,a\"\n",
-			err:     errors.New("failed to coerce value 'a' (indexed 1) into integer for field intarray: strconv.ParseInt: parsing \"a\": invalid syntax"),
+			err:     errors.New("failed to coerce value 'a' (indexed 1) into integer for field intarray: strconv.Atoi: parsing \"a\": invalid syntax"),
 		},
 		{
 			msg:     "time: custom unmarshaler type",
