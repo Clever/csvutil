@@ -104,7 +104,7 @@ func TestNewDecoder(t *testing.T) {
 				StrField A `csv:"custom"`
 			}{},
 			csvFile: "string\n",
-			err: fmt.Errorf("unsuported field type found that does not implement the " +
+			err: fmt.Errorf("unsupported field type found that does not implement the " +
 				"encoding.TextUnmarshaler interface: custom"),
 		},
 	}

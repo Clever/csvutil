@@ -36,7 +36,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 	// ensure that all "unknown" types have their own text unmarshaler
 	for _, m := range mappings {
 		if m.fieldType == reflect.Invalid && !m.customUnmarshaler {
-			return Decoder{}, fmt.Errorf("unsuported field type found that does not "+
+			return Decoder{}, fmt.Errorf("unsupported field type found that does not "+
 				"implement the encoding.TextUnmarshaler interface: %s", m.fieldName)
 		}
 	}
