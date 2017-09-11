@@ -110,14 +110,16 @@ func TestNewDecoder(t *testing.T) {
 	}
 
 	for _, s := range specs {
-		d, err := NewDecoder(strings.NewReader(s.csvFile), s.s)
-		if assert.Equal(t, s.err, err, s.msg) && s.err == nil {
-			fields := make([]string, len(d.mappings))
-			for i, m := range d.mappings {
-				fields[i] = m.fieldName
+		t.Run(s.msg, func(t *testing.T) {
+			d, err := NewDecoder(strings.NewReader(s.csvFile), s.s)
+			if assert.Equal(t, s.err, err, s.msg) && s.err == nil {
+				fields := make([]string, len(d.mappings))
+				for i, m := range d.mappings {
+					fields[i] = m.fieldName
+				}
+				assert.Equal(t, s.fieldOrder, fields, s.msg)
 			}
-			assert.Equal(t, s.fieldOrder, fields, s.msg)
-		}
+		})
 	}
 }
 
@@ -262,13 +264,15 @@ func TestDecoderRead(t *testing.T) {
 	}
 
 	for _, s := range specs {
-		d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
-		assert.Nil(t, err, s.msg)
-		var val S
-		err = d.Read(&val)
-		if assert.Equal(t, s.err, err, s.msg) && s.err == nil {
-			assert.Equal(t, s.res, val, s.msg)
-		}
+		t.Run(s.msg, func(t *testing.T) {
+			d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
+			assert.Nil(t, err, s.msg)
+			var val S
+			err = d.Read(&val)
+			if assert.Equal(t, s.err, err, s.msg) && s.err == nil {
+				assert.Equal(t, s.res, val, s.msg)
+			}
+		})
 	}
 }
 
@@ -299,12 +303,14 @@ func TestDecoderReadRequiredMissing(t *testing.T) {
 	}
 
 	for _, s := range specs {
-		d, err := NewDecoder(strings.NewReader(s.csvFile), s.s)
-		assert.Nil(t, err, s.msg)
-		var val S
-		err = d.Read(&val)
-		assert.Equal(t, s.err, err, s.msg)
-		assert.Equal(t, s.s, val, s.msg)
+		t.Run(s.msg, func(t *testing.T) {
+			d, err := NewDecoder(strings.NewReader(s.csvFile), s.s)
+			assert.Nil(t, err, s.msg)
+			var val S
+			err = d.Read(&val)
+			assert.Equal(t, s.err, err, s.msg)
+			assert.Equal(t, s.s, val, s.msg)
+		})
 	}
 }
 
@@ -347,7 +353,7 @@ c`)
 	assert.Equal(t, io.EOF, d.Read(&s), "should return EOF at end of buffer")
 }
 
-func TestDecoderGetMatchedHeaders(t *testing.T) {
+func TestDecoderMatchedHeaders(t *testing.T) {
 	type S struct {
 		StrField    string     `csv:"string"`
 		IntField    int        `csv:"integer"`
@@ -366,25 +372,26 @@ func TestDecoderGetMatchedHeaders(t *testing.T) {
 		{
 			msg:     "no matched headers",
 			headers: []string{},
-			csvFile: "no_match,no_match_two\n1\n2",
+			csvFile: "no_match,no_match_two\n",
 		},
 		{
 			msg:     "one matched header",
 			headers: []string{"integer"},
-			csvFile: "integer,unmatched_header\n1,test\n2,hi",
+			csvFile: "integer,unmatched_header\n",
 		},
 		{
 			msg:     "all matched headers",
 			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
-			csvFile: "time,intarray,array,no_match,boolean,integer,string\n" +
-				"defaultTimeStr,\"1,2\",\"a,b\",hi,true,12345678,abcdefgh",
+			csvFile: "time,intarray,array,no_match,boolean,integer,string\n",
 		},
 	}
 
 	for _, s := range specs {
-		d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
-		assert.Nil(t, err, s.msg)
-		matchedHeaders := d.GetMatchedHeaders()
-		assert.Equal(t, s.headers, matchedHeaders, s.msg)
+		t.Run(s.msg, func(t *testing.T) {
+			d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
+			assert.Nil(t, err, s.msg)
+			matchedHeaders := d.MatchedHeaders()
+			assert.Equal(t, s.headers, matchedHeaders, s.msg)
+		})
 	}
 }
