@@ -182,3 +182,15 @@ func (d Decoder) Read(dest interface{}) error {
 
 	return nil
 }
+
+// GetMatchedHeaders returns an array of strings (headers) using the Decoder mappings created
+// during decoder initialization. Returns an empty array when no headers are matched.
+func (d Decoder) GetMatchedHeaders() []string {
+	matchedHeaders := []string{}
+	for _, csvField := range d.mappings {
+		if csvField.fieldName != "" {
+			matchedHeaders = append(matchedHeaders, csvField.fieldName)
+		}
+	}
+	return matchedHeaders
+}

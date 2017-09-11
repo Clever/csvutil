@@ -346,3 +346,45 @@ c`)
 	var s S
 	assert.Equal(t, io.EOF, d.Read(&s), "should return EOF at end of buffer")
 }
+
+func TestDecoderGetMatchedHeaders(t *testing.T) {
+	type S struct {
+		StrField    string     `csv:"string"`
+		IntField    int        `csv:"integer"`
+		BoolField   bool       `csv:"boolean"`
+		StringArray []string   `csv:"array"`
+		IntArray    []int      `csv:"intarray"`
+		Time        *time.Time `csv:"time"`
+	}
+
+	specs := []struct {
+		msg     string
+		headers []string
+		csvFile string
+		err     error
+	}{
+		{
+			msg:     "no matched headers",
+			headers: []string{},
+			csvFile: "no_match,no_match_two\n1\n2",
+		},
+		{
+			msg:     "one matched header",
+			headers: []string{"integer"},
+			csvFile: "integer,unmatched_header\n1,test\n2,hi",
+		},
+		{
+			msg:     "all matched headers",
+			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
+			csvFile: "time,intarray,array,no_match,boolean,integer,string\n" +
+				"defaultTimeStr,\"1,2\",\"a,b\",hi,true,12345678,abcdefgh",
+		},
+	}
+
+	for _, s := range specs {
+		d, err := NewDecoder(strings.NewReader(s.csvFile), S{})
+		assert.Nil(t, err, s.msg)
+		matchedHeaders := d.GetMatchedHeaders()
+		assert.Equal(t, s.headers, matchedHeaders, s.msg)
+	}
+}
