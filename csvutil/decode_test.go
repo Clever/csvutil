@@ -270,6 +270,20 @@ func TestDecoderRead(t *testing.T) {
 			},
 			csvFile: "integer,string  ,  boolean \n1,test , true  \n 2,   hi,   false\n",
 		},
+		{
+			msg: "trim whitespace array",
+			res: S{
+				IntArray: []int{1, 2},
+			},
+			csvFile: "intarray\n\" 1,2 \"\n",
+		},
+		{
+			msg:     "trim whitespace time",
+			csvFile: fmt.Sprintf("time\n  %s  \n", defaultTimeStr),
+			res: S{
+				Time: &defaultTime,
+			},
+		},
 	}
 
 	for _, s := range specs {
