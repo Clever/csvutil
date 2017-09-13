@@ -85,7 +85,8 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 	}, nil
 }
 
-func normalizeHeader(header string) string { // lowercase and take out whitespace
+// normalizeHeader lowercases and trims whitespace
+func normalizeHeader(header string) string {
 	return strings.ToLower(strings.TrimSpace(header))
 }
 
