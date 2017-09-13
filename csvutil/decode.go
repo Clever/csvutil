@@ -52,7 +52,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 	headersSeen := map[string]bool{}
 	// Sort headers in line w/ CSV columns
 	for i, h := range headers {
-		h = strings.ToLower(h)
+		h = normalizeHeader(h)
 		// ensure unique CSV headers
 		if headersSeen[h] {
 			return Decoder{}, fmt.Errorf("saw header column '%s' twice, CSV headers must be unique", h)
@@ -61,7 +61,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 
 		// slot field info in array parallel to CSV column
 		for _, f := range mappings {
-			if h == strings.ToLower(f.fieldName) {
+			if h == normalizeHeader(f.fieldName) {
 				sortedMappings[i] = f
 			}
 		}
@@ -73,7 +73,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 
 	// Ensure that all required columns are present
 	for _, f := range mappings {
-		if f.required && !headersSeen[strings.ToLower(f.fieldName)] {
+		if f.required && !headersSeen[normalizeHeader(f.fieldName)] {
 			return Decoder{}, fmt.Errorf("column '%s' required but not found", f.fieldName)
 		}
 	}
@@ -83,6 +83,10 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 		mappings:   sortedMappings,
 		numColumns: numColumns,
 	}, nil
+}
+
+func normalizeHeader(header string) string { // lowercase and take out whitespace
+	return strings.ToLower(strings.TrimSpace(header))
 }
 
 // Read decodes data from a CSV row into a struct. The struct must be passed as a pointer
@@ -110,6 +114,7 @@ func (d Decoder) Read(dest interface{}) error {
 	}
 
 	for i, strValue := range row {
+		strValue = strings.TrimSpace(strValue)
 		m := d.mappings[i]
 		// skip column if we have no mapping
 		if m.fieldName == "" {

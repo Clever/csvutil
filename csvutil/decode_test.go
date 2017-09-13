@@ -261,6 +261,15 @@ func TestDecoderRead(t *testing.T) {
 				StrField: "x",
 			},
 		},
+		{
+			msg: "ignore whitespace",
+			res: S{
+				StrField:  "test",
+				IntField:  1,
+				BoolField: true,
+			},
+			csvFile: "integer,string  ,  boolean \n1,test , true  \n 2,   hi,   false\n",
+		},
 	}
 
 	for _, s := range specs {
@@ -383,6 +392,11 @@ func TestDecoderMatchedHeaders(t *testing.T) {
 			msg:     "all matched headers",
 			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
 			csvFile: "time,intarray,array,no_match,boolean,integer,string\n",
+		},
+		{
+			msg:     "ignore whitespace in headers",
+			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
+			csvFile: "  time ,  intarray,array ,no_match, boolean,integer,string \n",
 		},
 	}
 
