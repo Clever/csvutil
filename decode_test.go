@@ -353,7 +353,7 @@ func TestDecodeWithPointerUnmarshal(t *testing.T) {
 	assert.Equal(t, CustomTime{timeValue}, s.T)
 }
 
-func TestDecodeMultipleRows(t *testing.T) {
+func TestDecodeMultipleSingleColumnRows(t *testing.T) {
 	type S struct {
 		StrField string `csv:"string_column"`
 	}
@@ -374,6 +374,31 @@ c`)
 
 	var s S
 	assert.Equal(t, io.EOF, d.Read(&s), "should return EOF at end of buffer")
+}
+
+func TestDecodeMultipleMultiColumnRows(t *testing.T) {
+	type MultiColumn struct {
+		FieldA string `csv:"field_a"`
+		FieldB string `csv:"field_b"`
+	}
+	expectedValues := []MultiColumn{{"x", "x"}, {"x", ""}, {"", "x"}, {"", ""}}
+	input := (`field_a,field_b
+x,x
+x,
+,x
+,`)
+
+	d, err := NewDecoder(strings.NewReader(input), MultiColumn{})
+	assert.NoError(t, err)
+
+	var actual MultiColumn // Note the same variable is being reused
+	for i, expected := range expectedValues {
+		assert.NoError(t, d.Read(&actual), "reading %d row", i)
+		assert.Equal(t, expected.FieldA, actual.FieldA)
+		assert.Equal(t, expected.FieldB, actual.FieldB)
+	}
+
+	assert.Equal(t, io.EOF, d.Read(&actual), "should return EOF at end of buffer")
 }
 
 func TestDecoderMatchedHeaders(t *testing.T) {
