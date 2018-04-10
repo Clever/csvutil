@@ -125,6 +125,9 @@ func (d Decoder) Read(dest interface{}) error {
 			if m.required {
 				return fmt.Errorf("column %s required but no value found", m.fieldName)
 			}
+
+			v := destStruct.Elem().Field(m.fieldIndex)
+			v.Set(reflect.Zero(v.Type()))
 			continue
 		}
 
