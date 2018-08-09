@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -85,9 +86,10 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 	}, nil
 }
 
-// normalizeHeader lowercases and trims whitespace
+// normalizeHeader lowercases, trims whitespace and removes non-ascii characters
 func normalizeHeader(header string) string {
-	return strings.ToLower(strings.TrimSpace(header))
+	re := regexp.MustCompile("[[:^ascii:]]")
+	return strings.ToLower(strings.TrimSpace(re.ReplaceAllLiteralString(header, "")))
 }
 
 // Read decodes data from a CSV row into a struct. The struct must be passed as a pointer
