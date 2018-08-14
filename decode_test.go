@@ -437,6 +437,11 @@ func TestDecoderMatchedHeaders(t *testing.T) {
 			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
 			csvFile: "  time ,  intarray,array ,no_match, boolean,integer,string \n",
 		},
+		{
+			msg:     "ignore non-ascii characters in headers",
+			headers: []string{"time", "intarray", "array", "boolean", "integer", "string"},
+			csvFile: "\300time,intarray,array,boolean,integer,string\n",
+		},
 	}
 
 	for _, s := range specs {
