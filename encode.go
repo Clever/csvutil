@@ -8,11 +8,13 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Encoder manages writing a tagged struct into a CSV
 type Encoder struct {
 	w        *csv.Writer
+	mu       *sync.Mutex
 	mappings []csvField
 }
 
@@ -50,6 +52,7 @@ func NewEncoderFromCSVWriter(csvW *csv.Writer, dest interface{}) (Encoder, error
 	}
 
 	return Encoder{
+		mu:       &sync.Mutex{},
 		w:        csvW,
 		mappings: mappings,
 	}, nil
@@ -105,6 +108,8 @@ func (e Encoder) Write(src interface{}) error {
 		}
 	}
 
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	defer e.w.Flush()
 	return e.w.Write(rowValues)
 }
