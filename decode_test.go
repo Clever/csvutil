@@ -107,6 +107,14 @@ func TestNewDecoder(t *testing.T) {
 			err: fmt.Errorf("unsupported field type found that does not implement the " +
 				"encoding.TextUnmarshaler interface: custom"),
 		},
+		{
+			msg: "err when struct does not match headers",
+			s: struct {
+				StrField string `csv:"custom"`
+			}{},
+			csvFile: "field\nvalue\n",
+			err:     fmt.Errorf("all struct fields do not match any CSV headers"),
+		},
 	}
 
 	for _, s := range specs {
@@ -417,11 +425,6 @@ func TestDecoderMatchedHeaders(t *testing.T) {
 		csvFile string
 		err     error
 	}{
-		{
-			msg:     "no matched headers",
-			headers: []string{},
-			csvFile: "no_match,no_match_two\n",
-		},
 		{
 			msg:     "one matched header",
 			headers: []string{"integer"},

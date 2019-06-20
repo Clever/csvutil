@@ -47,6 +47,7 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 		return Decoder{}, fmt.Errorf("failed to find headers: %s", err)
 	}
 
+	allEmpty := true
 	numColumns := len(headers)
 	sortedMappings := make([]csvField, numColumns)
 	extraHeaders := []string{} // TODO: do anything with this?
@@ -69,7 +70,15 @@ func NewDecoderFromCSVReader(csvR *csv.Reader, dest interface{}) (Decoder, error
 		// check if field not set
 		if sortedMappings[i].fieldName == "" {
 			extraHeaders = append(extraHeaders, h)
+		} else {
+			// note that a field exists without an empty name
+			allEmpty = false
 		}
+	}
+
+	// Ensure that at least one mapping has a non-empty field name
+	if allEmpty {
+		return Decoder{}, fmt.Errorf("all struct fields do not match any CSV headers")
 	}
 
 	// Ensure that all required columns are present
