@@ -4,7 +4,7 @@ include golang.mk
 .PHONY: test $(PKGS)
 SHELL := /bin/bash
 PKGS = $(shell go list ./...)
-$(eval $(call golang-version-check,1.21))
+$(eval $(call golang-version-check,1.24))
 
 export _DEPLOY_ENV=testing
 
